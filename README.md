@@ -17,6 +17,9 @@ python3 main.py /foo/bar.mkv   # Opens a video file
 
 Random thoughts on how to track a Go board
 
-- Obtain matrix which maps some abstract grid onto board
+- Figure out roughly where the board is based on color, get convex hull
+    - <https://docs.opencv.org/master/d7/d1d/tutorial_hull.html>
+- Obtain matrix from hull which maps some abstract grid onto board
+    - find homography?
 - Downres image pretty hard
 - Sample pixel color at transformed grid point
