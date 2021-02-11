@@ -1,7 +1,13 @@
 import cv2
+import sys
 
-video_capture_device_index = 2
-webcam = cv2.VideoCapture(video_capture_device_index)
+video_source = sys.argv[1]
+try:
+    video_source = int(video_source)
+except:
+    # Ignore error - We're likely being passed a filename.
+    pass
+webcam = cv2.VideoCapture(video_source)
 
 while True:
     ret, video_frame = webcam.read()
