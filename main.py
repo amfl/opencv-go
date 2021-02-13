@@ -42,13 +42,13 @@ def find_board_contour(frame_gray_blur):
     #     color = (rng.randint(0,256), rng.randint(0,256), rng.randint(0,256))
     #     cv.drawContours(drawing, contours, i, color, 2, cv.LINE_8, hierarchy, 0)
 
-    longest = max(contours, key=lambda x: cv2.arcLength(x, True))
-    approx = cv2.approxPolyDP(longest, cv2.arcLength(longest, True) * 0.02, True)
+    contour_longest = max(contours, key=lambda x: cv2.arcLength(x, True))
+    contour_approx = cv2.approxPolyDP(contour_longest, cv2.arcLength(contour_longest, True) * 0.02, True)
 
-    # for cnt in contours:
-    #     perimeter = cv2.arcLength(cnt,True)
+    # Find the convex hull object for each contour
+    contour_hull = cv2.convexHull(contour_approx)
 
-    return approx
+    return contour_hull
 
 frame_num = 0
 board_mask = None
