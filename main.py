@@ -18,7 +18,7 @@ def generate_board_mask(frame_hsv):
     """Isolates the rough shape of the board by color matching.
     Returns the biggest group of connected pixels that is roughly the color of the board.
     This mask probably doesn't need to be generated every frame."""
-    lower = (16, 0, 0)  # H,S,V
+    lower = (8, 0, 0)  # H,S,V
     upper = (64, 255, 255)
     mask = cv2.inRange(frame_hsv, lower, upper)
 
@@ -28,27 +28,59 @@ def generate_board_mask(frame_hsv):
     dilation = cv2.dilate(erosion, kernel_3, iterations = 3)
     return dilation
 
+def find_board_contour(frame_gray_blur):
+    # Detect edges using Canny
+    threshold = 250
+    canny_output = cv2.Canny(frame_gray_blur, threshold, threshold * 3)
+
+    # Find contours
+    contours, hierarchy = cv2.findContours(canny_output, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Find longest contours
+    # drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
+    # for i in range(len(contours)):
+    #     color = (rng.randint(0,256), rng.randint(0,256), rng.randint(0,256))
+    #     cv.drawContours(drawing, contours, i, color, 2, cv.LINE_8, hierarchy, 0)
+
+    longest = max(contours, key=lambda x: cv2.arcLength(x, True))
+    approx = cv2.approxPolyDP(longest, cv2.arcLength(longest, True) * 0.02, True)
+
+    # for cnt in contours:
+    #     perimeter = cv2.arcLength(cnt,True)
+
+    return approx
+
 frame_num = 0
+board_mask = None
 while True:
     ret, frame = video_cap.read()
+    frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     if frame_num % 10 == 0:  # TODO: Do this per time rather than frames
-        # Detect the board
+
+        # Detect the board (Mask method)
         frame_HSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         board_mask = generate_board_mask(frame_HSV)
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    corners = cv2.goodFeaturesToTrack(gray,
+        # Detect the board (contour method)
+        frame_mask_blur = cv2.blur(board_mask, (3,3))
+        board_contour = find_board_contour(frame_mask_blur)
+
+    corners = cv2.goodFeaturesToTrack(frame_gray,
             maxCorners=(19*19)+20,
             qualityLevel=0.01,
             minDistance=10,
             mask=board_mask)
+
+    # Draw onto the image
 
     for corner in corners:
         x,y= corner[0]
         x= int(x)
         y= int(y)
         cv2.rectangle(frame, (x-10,y-10),(x+10,y+10),(255,0,0),-1)
+
+    cv2.drawContours(frame, [board_contour], -1, (255,255,255), 2)
 
     cv2.imshow("goodFeaturesToTrack Corner Detection", frame)
 
