@@ -11,38 +11,23 @@ def main():
 
     frame_num = 0
     board_mask = None
+    tracker = boardcv.BoardTracker()
+
     while True:
         ret, frame = video_cap.read()
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         if frame_num % 10 == 0:  # TODO: Do this per time rather than frames
-
-            # Detect the board (Mask method)
-            frame_HSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            board_mask = boardcv.generate_board_mask(frame_HSV)
-
-            # Detect the board (contour method)
-            frame_mask_blur = cv2.blur(board_mask, (3,3))
-            board_contour = boardcv.find_board_contour(frame_mask_blur)
-
-        corners = cv2.goodFeaturesToTrack(frame_gray,
-                maxCorners=(19*19)+20,
-                qualityLevel=0.01,
-                minDistance=10,
-                mask=board_mask)
+            # Detect the board
+            tracker.update(frame)
 
         # Draw onto the image
 
-        for corner in corners:
-            x,y= corner[0]
-            x= int(x)
-            y= int(y)
-            cv2.rectangle(frame, (x-10,y-10),(x+10,y+10),(255,0,0),-1)
-
-        cv2.drawContours(frame, [board_contour], -1, (255,255,255), 2)
+        corners = tracker.get_corner_estimate()
+        cv2.drawContours(frame, [corners], -1, (255,255,255), 2)
 
         # Slam a marker at the board corners
-        for corner in board_contour:
+        for corner in corners:
             x,y= corner[0]
             x= int(x)
             y= int(y)
