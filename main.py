@@ -82,6 +82,13 @@ while True:
 
     cv2.drawContours(frame, [board_contour], -1, (255,255,255), 2)
 
+    # Slam a marker at the board corners
+    for corner in board_contour:
+        x,y= corner[0]
+        x= int(x)
+        y= int(y)
+        cv2.rectangle(frame, (x-10,y-10),(x+10,y+10),(0,0,255),-1)
+
     cv2.imshow("goodFeaturesToTrack Corner Detection", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
