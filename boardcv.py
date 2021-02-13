@@ -4,6 +4,28 @@ import numpy as np
 class BoardTracker:
     def __init__(self):
         self.corners = [0,0,0,0]
+        self.set_dimensions()
+
+    def set_dimensions(self, board_x=19, board_y=19, border_padding=0):
+        self.dimensions = (board_y, board_x)  # numpy order
+        self.padding = border_padding
+
+    def draw_piece_debug(self, frame):
+        border_px = 26 # TODO: Make proportion to be res independent
+        inner = (frame.shape[0] - border_px,
+                 frame.shape[1] - border_px)
+
+        frame_blur = cv2.blur(frame, (9,9))
+
+        for y in range(self.dimensions[1]):
+            for x in range(self.dimensions[0]):
+                py = int(y * (inner[0] / self.dimensions[0])) + border_px
+                px = int(x * (inner[1] / self.dimensions[1])) + border_px
+                # Not sure why I need to convert these to int
+                color = frame_blur[py,px]
+                color = (int(color[0]), int(color[1]), int(color[2]))
+                cv2.rectangle(frame, (px-10,py-10),(px+10,py+10),color,-1)
+        return frame
 
     def update(self, frame):
         frame_HSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)

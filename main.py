@@ -33,7 +33,17 @@ def main():
             y= int(y)
             cv2.rectangle(frame, (x-10,y-10),(x+10,y+10),(0,0,255),-1)
 
-        cv2.imshow("goodFeaturesToTrack Corner Detection", frame)
+        # Obtain a birds eye view
+        out_w, out_h = 640, 640
+        src = np.float32(tracker.get_corner_estimate())
+        dest = np.float32([[out_w, 0], [out_w, out_h], [0, out_h], [0, 0]])
+        # Apply Perspective Transform Algorithm
+        matrix = cv2.getPerspectiveTransform(src, dest)
+        result = cv2.warpPerspective(frame, matrix, (out_w, out_h))
+
+        result = tracker.draw_piece_debug(result)
+
+        cv2.imshow("Program Output", result)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
