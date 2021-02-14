@@ -104,6 +104,12 @@ class BoardTracker:
     def get_corner_estimate(self):
         avg_corner_hull = sum(self.corner_queue) / len(self.corner_queue)
         return avg_corner_hull
+        # hard-coded values for test data
+        # return np.float32(
+        #         [[920.7, 90.6 ],
+        #          [942.5, 615.7],
+        #          [384.6, 597.7],
+        #          [440.6, 50.2 ]])
 
     def get_board_state_estimate(self):
         pass
