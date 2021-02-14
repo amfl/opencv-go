@@ -3,7 +3,7 @@ import numpy as np
 
 class BoardTracker:
     def __init__(self):
-        self.corners = [0,0,0,0]
+        self.corner_queue = []
         self.set_dimensions()
 
     def set_dimensions(self, board_x=19, board_y=19, border_padding=0):
@@ -38,7 +38,9 @@ class BoardTracker:
         contour_hull = cv2.convexHull(contour_approx)
 
         if len(contour_hull) == 4:
-            self.corners = contour_hull
+            self.corner_queue.append(contour_hull)
+            if len(self.corner_queue) > 30:
+                self.corner_queue.pop(0)
 
     def _update_board_state_estimate(self, frame_birds_eye):
         border_px = 26 # TODO: Make proportion to be res independent
@@ -100,7 +102,8 @@ class BoardTracker:
         return result
 
     def get_corner_estimate(self):
-        return self.corners
+        avg_corner_hull = sum(self.corner_queue) / len(self.corner_queue)
+        return avg_corner_hull
 
     def get_board_state_estimate(self):
         pass
