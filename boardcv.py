@@ -44,19 +44,28 @@ class BoardTracker:
         inner = (frame_birds_eye.shape[0] - border_px,
                  frame_birds_eye.shape[1] - border_px)
 
+        frame_debug = np.zeros(shape=frame_birds_eye.shape, dtype=frame_birds_eye.dtype)
         frame_blur = cv2.blur(frame_birds_eye, (9,9))
+        frame_blur_hsv = cv2.cvtColor(frame_blur, cv2.COLOR_BGR2HSV)
 
         for y in range(self.dimensions[1]):
             for x in range(self.dimensions[0]):
                 py = int(y * (inner[0] / self.dimensions[0])) + border_px
                 px = int(x * (inner[1] / self.dimensions[1])) + border_px
                 # Not sure why I need to convert these to int
-                color = frame_blur[py,px]
+                color = frame_blur_hsv[py,px]
                 color = (int(color[0]), int(color[1]), int(color[2]))
-                cv2.rectangle(frame_birds_eye, (px-10,py-10),(px+10,py+10),color,-1)
+                # See if this represents a piece
+                if color[2] < 40:
+                    color = (0,255,0)
+                elif color[2] > 230:
+                    color = (255,0,0)
+                else:
+                    color = (128,128,128)
+                cv2.rectangle(frame_debug, (px-10,py-10),(px+10,py+10),color,-1)
 
         # Returns frame with debug info
-        return frame_birds_eye
+        return frame_debug
 
     @staticmethod
     def get_frame_birds_eye(frame, corner_estimate):
