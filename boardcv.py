@@ -48,7 +48,7 @@ class BoardTracker:
                  frame_birds_eye.shape[1] - border_px)
 
         frame_debug = np.zeros(shape=frame_birds_eye.shape, dtype=frame_birds_eye.dtype)
-        frame_blur = cv2.blur(frame_birds_eye, (9,9))
+        frame_blur = cv2.blur(frame_birds_eye, (13,13))
         frame_blur_hsv = cv2.cvtColor(frame_blur, cv2.COLOR_BGR2HSV)
 
         denoise_decay = 1
@@ -70,11 +70,11 @@ class BoardTracker:
                 color = frame_blur_hsv[py,px]
                 color = (int(color[0]), int(color[1]), int(color[2]))
                 # See if this represents a piece
-                if color[2] < 40:
+                if color[2] < 55:     # BLACK PIECE
                     self.state[y][x] = min(
                             self.state[y][x] + denoise_increase,
                             denoise_max_confidence)
-                elif color[2] > 220:
+                elif color[2] > 200 and color[1] < 60:  # WHITE PIECE
                     self.state[y][x] = max(
                             self.state[y][x] - denoise_increase,
                             -denoise_max_confidence)
@@ -85,10 +85,10 @@ class BoardTracker:
                     color = (256,256,256)
                 else:
                     color = (128,128,128)
-                cv2.rectangle(frame_birds_eye, (px-10,py-10),(px+10,py+10),color,-1)
+                cv2.rectangle(frame_blur, (px-10,py-10),(px+10,py+10),color,-1)
 
         # Returns frame with debug info
-        return frame_birds_eye
+        return frame_blur
 
     @staticmethod
     def get_frame_birds_eye(frame, corner_estimate):
