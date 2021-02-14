@@ -28,9 +28,9 @@ def main():
         #     y= int(y)
         #     cv2.rectangle(frame, (x-10,y-10),(x+10,y+10),(0,0,255),-1)
 
-        if num_frames % 10 == 0:  # TODO: Do this per time rather than frames
-            # Detect the board
-            frame_debug = tracker.update(frame)
+        # if num_frames % 10 == 0:  # TODO: Do this per time rather than frames
+        # Detect the board
+        frame_debug = tracker.update(frame)
 
 
 

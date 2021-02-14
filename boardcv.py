@@ -9,6 +9,7 @@ class BoardTracker:
     def set_dimensions(self, board_x=19, board_y=19, border_padding=0):
         self.dimensions = (board_y, board_x)  # numpy order
         self.padding = border_padding
+        self.state = [[0]*board_x for x in range(board_y)]
 
     def update(self, frame):
         frame_HSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -48,6 +49,17 @@ class BoardTracker:
         frame_blur = cv2.blur(frame_birds_eye, (9,9))
         frame_blur_hsv = cv2.cvtColor(frame_blur, cv2.COLOR_BGR2HSV)
 
+        denoise_decay = 1
+        denoise_increase = 2
+        denoise_threshold = 10
+        denoise_max_confidence = 50
+
+        # Reduce confidence in current state over time
+        for y, row in enumerate(self.state):
+            for x, t in enumerate(row):
+                if t > 0: self.state[y][x] = t - denoise_decay
+                elif t < 0: self.state[y][x] = t + denoise_decay
+
         for y in range(self.dimensions[1]):
             for x in range(self.dimensions[0]):
                 py = int(y * (inner[0] / self.dimensions[0])) + border_px
@@ -57,15 +69,24 @@ class BoardTracker:
                 color = (int(color[0]), int(color[1]), int(color[2]))
                 # See if this represents a piece
                 if color[2] < 40:
-                    color = (0,255,0)
-                elif color[2] > 230:
-                    color = (255,0,0)
+                    self.state[y][x] = min(
+                            self.state[y][x] + denoise_increase,
+                            denoise_max_confidence)
+                elif color[2] > 220:
+                    self.state[y][x] = max(
+                            self.state[y][x] - denoise_increase,
+                            -denoise_max_confidence)
+
+                if self.state[y][x] > denoise_threshold:
+                    color = (0,0,0)
+                elif self.state[y][x] < -denoise_threshold:
+                    color = (256,256,256)
                 else:
                     color = (128,128,128)
-                cv2.rectangle(frame_debug, (px-10,py-10),(px+10,py+10),color,-1)
+                cv2.rectangle(frame_birds_eye, (px-10,py-10),(px+10,py+10),color,-1)
 
         # Returns frame with debug info
-        return frame_debug
+        return frame_birds_eye
 
     @staticmethod
     def get_frame_birds_eye(frame, corner_estimate):
