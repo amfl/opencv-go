@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from sklearn.cluster import KMeans
 
 class BoardTracker:
     def __init__(self):
@@ -20,6 +21,9 @@ class BoardTracker:
 
         frame_birds_eye = BoardTracker.get_frame_birds_eye(frame, self.get_corner_estimate())
         frame_debug = self._update_board_state_estimate(frame_birds_eye)
+
+        # Do some pointless clustering :)
+        BoardTracker.kmeans(frame_birds_eye, 3)
 
         return frame_debug
 
@@ -113,6 +117,16 @@ class BoardTracker:
 
     def get_board_state_estimate(self):
         pass
+
+    @staticmethod
+    def kmeans(frame, k):
+        # https://nrsyed.com/2018/03/29/image-segmentation-via-k-means-clustering-with-opencv-python/
+
+        # Flatten the 2D image array into an MxN feature vector, where M is
+        # the number of pixels and N is the dimension (number of channels).
+        reshaped = frame.reshape(frame.shape[0] * frame.shape[1], frame.shape[2])
+
+        kmeans = KMeans(n_clusters=k, n_init=40, max_iter=500).fit(reshaped)
 
 def generate_board_mask(frame_hsv):
     """Isolates the rough shape of the board by color matching.
