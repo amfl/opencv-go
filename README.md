@@ -21,5 +21,6 @@ Random thoughts on how to track a Go board
     - <https://docs.opencv.org/master/d7/d1d/tutorial_hull.html>
 - Obtain matrix from hull which maps some abstract grid onto board
     - find homography?
+    - Use extrapolated hough lines instead of convex hull? Might work better with occluded corners, or skin tone matching board color.
 - Downres image pretty hard
 - Sample pixel color at transformed grid point
