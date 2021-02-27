@@ -1,15 +1,30 @@
 import cv2
 import numpy as np
 
+EMPTY=0
+BLACK=1
+WHITE=2
+NUM_CELL_STATES=3
+
 class BoardTracker:
     def __init__(self):
         self.corner_queue = []
         self.set_dimensions()
 
+
     def set_dimensions(self, board_x=19, board_y=19, border_padding=0):
         self.dimensions = (board_y, board_x)  # numpy order
         self.padding = border_padding
-        self.state = [[0]*board_x for x in range(board_y)]
+
+        # BOARD STATE
+        # Stores the probabilistic board state in a 3 dimensional array.
+        # - First 2 dims are just (x, y) coords on board
+        # - Last dim is a vector representing which piece is there
+        #   eg  [0.13, 0.02, 0.85]
+        #       Means that we're pretty sure this is a white piece
+        #       (Small possibility it might be empty instead)
+        # Array is not normalized. The largest value wins.
+        self.state = np.zeros(shape=(board_y,board_x,NUM_CELL_STATES))
 
     def update(self, frame):
         frame_HSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -51,16 +66,8 @@ class BoardTracker:
         frame_blur = cv2.blur(frame_birds_eye, (13,13))
         frame_blur_hsv = cv2.cvtColor(frame_blur, cv2.COLOR_BGR2HSV)
 
-        denoise_decay = 1
-        denoise_increase = 2
-        denoise_threshold = 10
-        denoise_max_confidence = 50
-
-        # Reduce confidence in current state over time
-        for y, row in enumerate(self.state):
-            for x, t in enumerate(row):
-                if t > 0: self.state[y][x] = t - denoise_decay
-                elif t < 0: self.state[y][x] = t + denoise_decay
+        # Construct a new state object just from this frame.
+        frame_state = np.zeros(shape=(self.dimensions[0],self.dimensions[1],NUM_CELL_STATES))
 
         for y in range(self.dimensions[1]):
             for x in range(self.dimensions[0]):
@@ -69,26 +76,47 @@ class BoardTracker:
                 # Not sure why I need to convert these to int
                 color = frame_blur_hsv[py,px]
                 color = (int(color[0]), int(color[1]), int(color[2]))
-                # See if this represents a piece
-                if color[2] < 55:     # BLACK PIECE
-                    self.state[y][x] = min(
-                            self.state[y][x] + denoise_increase,
-                            denoise_max_confidence)
-                elif color[2] > 200 and color[1] < 60:  # WHITE PIECE
-                    self.state[y][x] = max(
-                            self.state[y][x] - denoise_increase,
-                            -denoise_max_confidence)
 
-                if self.state[y][x] > denoise_threshold:
-                    color = (0,0,0)
-                elif self.state[y][x] < -denoise_threshold:
-                    color = (256,256,256)
+                # Figure out which cell state this color corresponds to
+                if color[2] < 55:
+                    frame_state[y,x,BLACK] = 1
+                elif color[2] > 200 and color[1] < 60:
+                    frame_state[y,x,WHITE] = 1
                 else:
-                    color = (128,128,128)
-                cv2.rectangle(frame_blur, (px-10,py-10),(px+10,py+10),color,-1)
+                    # Arrived at this value experimentally :)
+                    # Seems to give better results than 1
+                    # (Less false negatives when pieces are briefly occluded)
+                    frame_state[y,x,EMPTY] = 0.5
+
+        # Dribble the frame state into the accumulated state
+        self.state = self.state * 0.95 + frame_state * 0.05
+
+        BoardTracker.draw_debug_state(frame_blur, self.state)
 
         # Returns frame with debug info
         return frame_blur
+
+    @staticmethod
+    def draw_debug_state(frame, state):
+        border_px = 26 # TODO: Make proportion to be res independent
+        inner = (frame.shape[0] - border_px,
+                 frame.shape[1] - border_px)
+
+        cell_state = np.argmax(state, 2)
+
+        for y in range(state.shape[0]):
+            for x in range(state.shape[1]):
+                py = int(y * (inner[0] / state.shape[0])) + border_px
+                px = int(x * (inner[1] / state.shape[1])) + border_px
+
+                # DRAW ON THE DEBUG IMAGE
+                if cell_state[y,x] == BLACK:
+                    color = (0,0,0)
+                elif cell_state[y,x] == WHITE:
+                    color = (256,256,256)
+                else:
+                    color = (128,128,128)
+                cv2.rectangle(frame, (px-10,py-10),(px+10,py+10),color,-1)
 
     @staticmethod
     def get_frame_birds_eye(frame, corner_estimate):
@@ -112,7 +140,7 @@ class BoardTracker:
         #          [440.6, 50.2 ]])
 
     def get_board_state_estimate(self):
-        pass
+        return np.argmax(self.state, 2)
 
 def generate_board_mask(frame_hsv):
     """Isolates the rough shape of the board by color matching.
