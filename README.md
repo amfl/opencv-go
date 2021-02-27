@@ -1,5 +1,9 @@
 # OpenCV-Go
 
+Point a webcam at your Go board and record real games in `sgf` format.
+
+The resulting `sgf` file could be analyzed with AI.
+
 ## Usage
 
 ```bash
