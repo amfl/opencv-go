@@ -1,6 +1,7 @@
 from sgfmill import sgf
 import numpy as np
 
+
 class GameNode:
     def __init__(self):
         self.state = None
@@ -23,6 +24,7 @@ class GameNode:
         sgf_friendly_moves = list(zip(colors, moves))
 
         return sgf_friendly_moves
+
 
 class GameTree:
     def __init__(self, size):

@@ -1,10 +1,11 @@
 import cv2
 
+
 def get_video_cap(video_source):
     try:
         video_source = int(video_source)
-    except:
-        # Ignore error - We're likely being passed a filename.
+    except ValueError:
+        # Ignore - We're likely being passed a filename.
         pass
     video_cap = cv2.VideoCapture(video_source)
 

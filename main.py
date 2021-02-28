@@ -1,12 +1,12 @@
 import cv2
 import sys
-import numpy as np
 
 import boardcv
 import vidio
 import game_tree as gt
 
 BOARD_SIZE = 19
+
 
 def main():
     video_source = sys.argv[1]
@@ -19,7 +19,6 @@ def main():
 
     while True:
         ret, frame = video_cap.read()
-        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # # TEMP: Draw straight onto the image before giving it to the tracker
         # corners = tracker.get_corner_estimate()
@@ -57,6 +56,7 @@ def main():
     video_cap.release()
     # Destroy all the windows
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()
