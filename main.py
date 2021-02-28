@@ -4,6 +4,9 @@ import numpy as np
 
 import boardcv
 import vidio
+import game_tree as gt
+
+BOARD_SIZE = 19
 
 def main():
     video_source = sys.argv[1]
@@ -12,6 +15,7 @@ def main():
     num_frames = 0  # frame counter
     frame_debug = None
     tracker = boardcv.BoardTracker()
+    game_tree = gt.GameTree(BOARD_SIZE)
 
     while True:
         ret, frame = video_cap.read()
@@ -32,7 +36,11 @@ def main():
         # Detect the board
         frame_debug = tracker.update(frame)
 
+        s = tracker.get_board_state_estimate()
+        state_changed = game_tree.update(s)
 
+        if state_changed:
+            print(s)
 
         # result = tracker.draw_piece_debug(result)
 
