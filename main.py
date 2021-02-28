@@ -42,6 +42,7 @@ def main():
         if state_changed:
             print(s)
             print(game_node.difference_from_parent())
+            print(game_tree.sgf_game.serialise())
 
         # result = tracker.draw_piece_debug(result)
 

@@ -1,9 +1,11 @@
+from sgfmill import sgf
 import numpy as np
 
 class GameNode:
     def __init__(self):
         self.state = None
         self.parent = None
+        self.sgf_node = None
 
     def difference_from_parent(self):
         try:
@@ -27,6 +29,7 @@ class GameTree:
         # For quick access to all gamestates
         self.state_map = {}
         self.current_state = None
+        self.sgf_game = sgf.Sgf_game(size=size)
 
     def update(self, state):
         """Update the gametree.
@@ -48,6 +51,27 @@ class GameTree:
             gn = GameNode()
             gn.state = state
             gn.parent = self.state_map.get(self.current_state, None)
+
+            sgf_node = None
+            if gn.parent:
+                diffs = gn.difference_from_parent()
+                if len(diffs) == 1 and gn.parent.sgf_node is not None:
+                    # This could be a valid sgf move.
+                    node = gn.parent.sgf_node.new_child()
+                    try:
+                        # Can throw an error if this move is invalid.
+                        node.set_move(diffs[0][0], diffs[0][1])
+                        sgf_node = node
+                    except ValueError:
+                        print("ERROR: Invalid move.")
+                        print("Further moves on this branch not recordable.")
+                        node.delete()
+            else:
+                # This is the first move!
+                print("made the first move.")
+                sgf_node = self.sgf_game.get_last_node()
+
+            gn.sgf_node = sgf_node
 
             self.state_map[hashable] = gn
         else:
