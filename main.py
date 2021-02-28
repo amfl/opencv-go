@@ -37,7 +37,7 @@ def main():
         frame_debug = tracker.update(frame)
 
         s = tracker.get_board_state_estimate()
-        state_changed = game_tree.update(s)
+        state_changed, game_node = game_tree.update(s)
 
         if state_changed:
             print(s)

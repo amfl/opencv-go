@@ -12,7 +12,8 @@ class GameTree:
     def update(self, state):
         """Update the gametree.
         Returns:
-            bool: True if board state changed, False otherwise.
+            bool:     True if board state changed, False otherwise.
+            GameNode: The current GameNode
         """
 
         # Convert state to something hashable
@@ -20,14 +21,14 @@ class GameTree:
 
         # If this is the same as last time, no action required
         if self.current_state == hashable:
-            return False
+            return False, self.state_map[hashable]
 
         # If we have not seen this state before..
         if not (hashable in self.state_map):
             print("Unique state!")
             gn = GameNode()
             gn.state = state
-            gn.parent = self.current_state
+            gn.parent = self.state_map.get(self.current_state, None)
 
             self.state_map[hashable] = gn
         else:
@@ -36,4 +37,4 @@ class GameTree:
         # Keep track of the current state
         self.current_state = hashable
 
-        return True
+        return True, self.state_map[hashable]
