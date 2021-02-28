@@ -1,7 +1,26 @@
+import numpy as np
+
 class GameNode:
     def __init__(self):
         self.state = None
         self.parent = None
+
+    def difference_from_parent(self):
+        try:
+            diff = self.state - self.parent.state
+        except AttributeError:
+            # There is no parent for this state!
+            return None
+        changed_coords = np.nonzero(diff)
+
+        # Convert coords into a list of moves
+        # Format: [((2, 1), 'w')]
+        moves = list(zip(changed_coords[0], changed_coords[1]))
+        m = ['.', 'b', 'w']
+        colors = [m[self.state[x[0], x[1]]] for x in moves]
+        sgf_friendly_moves = list(zip(colors, moves))
+
+        return sgf_friendly_moves
 
 class GameTree:
     def __init__(self, size):

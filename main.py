@@ -41,6 +41,7 @@ def main():
 
         if state_changed:
             print(s)
+            print(game_node.difference_from_parent())
 
         # result = tracker.draw_piece_debug(result)
 
