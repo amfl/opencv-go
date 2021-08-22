@@ -1,2 +1,6 @@
 opencv-python
+
+# for aruco
+opencv-contrib-python
+
 sgfmill>=1
