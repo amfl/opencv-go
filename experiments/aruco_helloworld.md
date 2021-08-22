@@ -16,6 +16,7 @@ cv2.solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs[, rvec[, tvec[,
 
 **tl;dr**: Given some known point relationships (objectPoints) and their observed position (imagePoints), we want to estimate the location of some unobserved point(s) on the image (novelImagePoints).
 
+- <https://docs.opencv.org/master/dc/dbb/tutorial_py_calibration.html> -> cameraMatrix
 - (objectPoints, imagePoints, cameraMatrix) -> `solvePnP` -> (rvec, tvec)
     - <http://www.opencv.org.cn/opencvdoc/2.3.2/html/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html?highlight=findfun#solvepnp>
 - (novelObjectPoints, rvec, tvec) -> `projectpoints` -> novelImagePoints
