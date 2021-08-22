@@ -5,6 +5,15 @@ import numpy as np
 # Set PYTHONPATH to include the repo root to make this work
 import vidio
 
+def construct_example_objectpoints():
+    """Return a map of id to object-space coordinates. Suitable for constructing arguments for solvePnP or projectpoints.
+
+    {id: (x,y,0)}
+    """
+    # List of IDs as printed on pdf
+    ids = [388,201,234,116,596,681,11,220,169,85,415,137,923,735,84,191,393,996,104,557,721,7,880,746,493,115,746,476,631,191,212,826,582,62,341]
+
+    return { v:(i%5,i//5,0) for i,v in enumerate(ids) }
 
 def main():
     video_source = sys.argv[1]
@@ -12,6 +21,8 @@ def main():
 
     num_frames = 0  # frame counter
     frame_debug = None
+
+    example_objectpoints = construct_example_objectpoints()
 
     while True:
         ret, frame = video_cap.read()
@@ -30,6 +41,10 @@ def main():
                 frame,
                 arucoDict,
                 parameters=arucoParams)
+
+        if ids is not None:
+            witnessed_objectpoints = [example_objectpoints[aruco_id[0]] for aruco_id in ids]
+            print(witnessed_objectpoints)
 
         for i in range(len(corners)):  # Iterate through each marker
 
