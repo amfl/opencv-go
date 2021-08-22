@@ -31,16 +31,29 @@ def main():
                 arucoDict,
                 parameters=arucoParams)
 
-        for i in range(len(corners)):
-            points = np.array(corners[i][0], dtype=np.int32)
-            print(points)
+        for i in range(len(corners)):  # Iterate through each marker
 
+            points = np.array(corners[i][0], dtype=np.int32)
+
+            # Draw the bounds of the aruco marker
             color = (0, 0, 256)
             cv2.polylines(frame,
                           [points],
                           True,
                           color,
                           2)
+
+            # Draw ID onto the image
+            text = str(ids[i][0])
+            text_pos = points[0]
+            text_color = (0, 128, 0)
+            # print(text)
+            cv2.putText(frame,
+                        text,
+                        text_pos,
+                        cv2.FONT_HERSHEY_PLAIN,
+                        1,
+                        text_color)
 
         ####################################
 
