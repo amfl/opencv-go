@@ -9,12 +9,12 @@ import vidio
 def construct_example_objectpoints():
     """Return a map of id to object-space coordinates. Suitable for constructing arguments for solvePnP or projectpoints.
 
-    {id: (x,y,0)}
+    {id: [x,y,0]}
     """
     # List of IDs as printed on pdf
     ids = [388,201,234,116,596,681,11,220,169,85,415,137,923,735,84,191,393,996,104,557,721,7,880,746,493,115,746,476,631,191,212,826,582,62,341]
 
-    return { v:(i%5,i//5,0) for i,v in enumerate(ids) }
+    return { v:[float(i%5),float(i//5),0.0] for i,v in enumerate(ids) }
 
 def get_camera_matrix(filename):
     """Read the camera matrix from a file.
@@ -56,48 +56,91 @@ def main(video_device, camera_matrix_file):
                 parameters=arucoParams)
 
         if ids is not None:
-            witnessed_objectpoints = [example_objectpoints[aruco_id[0]] for aruco_id in ids]
-            print(witnessed_objectpoints)
+            for i in range(len(corners)):  # Iterate through each marker
 
-        for i in range(len(corners)):  # Iterate through each marker
+                points = np.array(corners[i][0], dtype=np.int32)
 
-            points = np.array(corners[i][0], dtype=np.int32)
+                # Draw the bounds of the aruco marker
+                color = (0, 0, 256)
+                cv2.polylines(frame,
+                              [points],
+                              True,
+                              color,
+                              2)
 
-            # Draw the bounds of the aruco marker
-            color = (0, 0, 256)
-            cv2.polylines(frame,
-                          [points],
-                          True,
-                          color,
-                          2)
+                # Draw ID onto the image
+                text = str(ids[i][0])
+                text_pos = points[0]
+                text_color = (0, 128, 0)
+                # print(text)
+                cv2.putText(frame,
+                            text,
+                            text_pos,
+                            cv2.FONT_HERSHEY_PLAIN,
+                            1,
+                            text_color)
 
-            # Draw ID onto the image
-            text = str(ids[i][0])
-            text_pos = points[0]
-            text_color = (0, 128, 0)
-            # print(text)
-            cv2.putText(frame,
-                        text,
-                        text_pos,
-                        cv2.FONT_HERSHEY_PLAIN,
-                        1,
-                        text_color)
+            ####################################
 
-        ####################################
+            if len(corners) >= 6:
+                ### solvePnP to get camera pose
+                # Get imagepoints from corners
+                # Get objectpoints based on whichever imagepoints are observed
+                # We already have the cameraMatrix
+                witnessed_objectpoints = np.array([example_objectpoints[aruco_id[0]] for aruco_id in ids])
+                witnessed_imagepoints = np.array([c[0][0] for c in corners])
 
-        ### solvePnP to get camera pose
-        # Get imagepoints from corners
-        # Get objectpoints based on whichever imagepoints are observed
-        # We already have the cameraMatrix
+                # print(witnessed_objectpoints)
+                # print(witnessed_imagepoints)
+                # print(camera_matrix)
 
-        ### projectpoints to get board dimensions
-        # Calculate objectPoints of board
+                # For each identified imagepoint,
+                # we should know where it is in object space.
+                assert(len(witnessed_imagepoints) == len(witnessed_objectpoints))
+
+                retval, rvec, tvec = cv2.solvePnP(witnessed_objectpoints,
+                                                  witnessed_imagepoints,
+                                                  camera_matrix,
+                                                  None)
+
+                ### projectpoints to get board dimensions
+                # Calculate objectPoints of board
+
+                novel_objectpoints = np.array([
+                    [3.5, 3.5, 0.0],
+                    [0.0, 0.0, 0.0],
+                    [0.0, 6.0, 0.0],
+                    [4.0, 0.0, 0.0],
+                    [4.0, 6.0, 0.0],
+                ])
+                novel_imagepoints, jacobian = cv2.projectPoints(
+                        novel_objectpoints,
+                        rvec, tvec,
+                        camera_matrix,
+                        None)
+
+                print(novel_imagepoints)
+
+                for p in witnessed_imagepoints:
+                    cv2.circle(frame,
+                               (int(p[0]), int(p[1])),
+                               6,
+                               (0,255,255),
+                               -1)
+
+                for p in novel_imagepoints:
+                    p = p[0]
+                    cv2.circle(frame,
+                               (int(p[0]), int(p[1])),
+                               6,
+                               (0,0,255),
+                               -1)
 
         ####################################
 
         cv2.imshow("Program Output", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(20) & 0xFF == ord('q'):
             break
 
         num_frames += 1
