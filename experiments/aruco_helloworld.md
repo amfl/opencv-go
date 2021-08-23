@@ -8,6 +8,17 @@ Goals:
     - Can I do this with <https://www.pythonpool.com/opencv-solvepnp/>? I think so. Object points are 3d, but we can set one axis to 0s.
     - <https://docs.opencv.org/master/dc/dbb/tutorial_py_calibration.html>
 
+Usage:
+
+```bash
+cd $REPO_ROOT
+export PYTHONPATH=$(pwd)
+# Generate camera matrices (You will need your own calibration images)
+python3 experiments/calibrate_camera.py
+# Run the code (You will need your own camera/footage)
+python3 experiments/aruco_helloworld.py input/testdata/aruco2.mkv input/camera.cmat input/distortion.cmat
+```
+
 Specifics:
 
 ```
