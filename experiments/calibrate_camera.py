@@ -1,6 +1,7 @@
-import numpy as np
 import cv2 as cv
 import glob
+import numpy as np
+import pickle
 
 dims = (6,9)
 
@@ -44,3 +45,11 @@ if ret:
     print(rvecs)
     print("=== Tvecs ===")
     print(tvecs)
+
+# Serialize
+
+with open('camera.cmat', 'bw') as f:
+    f.write(pickle.dumps(mtx))
+
+with open('distortion.cmat', 'bw') as f:
+    f.write(pickle.dumps(dist))
