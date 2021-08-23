@@ -4,6 +4,13 @@ Point a webcam at your Go board and record real games in `sgf` format.
 
 The resulting `sgf` file could be analyzed with AI.
 
+## Status
+
+This project isn't really in a robust, working state yet.
+
+It's written by me for fun, so don't expect state-of-the-art techniques or
+incredible documentation while it all comes together.
+
 ## Usage
 
 ```bash
